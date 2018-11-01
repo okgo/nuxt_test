@@ -24,6 +24,9 @@
     "eslint-loader": "^1.7.1",
     "eslint-plugin-vue": "^4.0.0",
     "node-sass": "^4.9.3",
+    "postcss-hexrgba": "^1.0.1",
+    "postcss-nested": "^3.0.0",
+    "postcss-responsive-type": "^1.0.0",
     "pug": "^2.0.3",
     "pug-plain-loader": "^1.0.0",
     "sass-loader": "^7.1.0"

@@ -3,30 +3,37 @@
     .container
       p.back-link
         nuxt-link(to="/cards") < Back to cards list
-      .card-item(v-bind:title="card.cardTitle")
-        .card-item__inner
-          h2 {{ card.cardTitle }}
-          h4.card-number Card Number: {{card.cardNumber}}
-          p.card-balance Card Balance: {{card.balance}}
-      .links
-        transition(name="fade" mode="out-in")
-          a(
-            class="button--green"
-            @click="seen = !seen"
-            v-bind:key="seen"
-            )  {{ !seen ? 'Add Balance' : 'Hide form' }}
-
-      transition(name='fade')
-        form.add-balance(v-if="seen" v-on:submit.prevent="add(card)")
-          .row
-            input#amount(type='number', placeholder='Enter amount')
-          .row
-            button(
-              class="button--green"
-              ) Add
+      .card-container
+        .card-item(v-bind:title="card.cardTitle")
+          .card-item__inner
+            h2 {{ card.cardTitle }}
+            h4.card-number Card Number: {{card.cardNumber}}
+            p.card-balance Card Balance: {{card.balance}}
+      .send-balance-container
+        h2 Send Balance
+        a.button--green(
+          @click="toggleCardsList"
+          v-bind:key="showCardsList"
+          ) {{ !showCardsList ? 'Show cards list' : 'Hide cards list' }}
+        .cards-list(v-if="showCardsList")
+          h3 Select card
+          .card-item(href="#" v-for="(card, index) in cards" :id="card.id" :key="card.id" :index="index" :class="{selected:card.id == selectedCard}")
+            button(@click="selectCard(card, $event)") Select
+            .card-item__inner
+              h3 {{card.cardTitle}}
+              h4.card-number Card Number: {{ card.cardNumber }}
+              p.card-balance Card Balance: {{ card.balance }}
+        div
+          form.send-balance(v-if="showSendBalanceForm" v-on:submit.prevent="sendBalance(card, cardTo)")
+            .row
+              input#amoun-send(type='number' placeholder='Amount' v-model.lazy="amountToSend" name='amountToSend')
+            .row
+              button.button--green Send
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default{
   head: {
     bodyAttrs: {
@@ -35,30 +42,49 @@ export default{
   },
   data() {
     return {
-      seen: false
+      showCardsList: false,
+      selectedCard: undefined,
+      showSendBalanceForm: false,
+      amount: '',
+      amountToSend: '',
+      cardTo: {}
     }
   },
-  asyncData({ params }) {
-    let cards = [
-      {id: '1', cardTitle: 'Credit card 1', cardNumber: '01', balance: '200'},
-      {id: '2', cardTitle: 'Credit card 2', cardNumber: '02', balance: '700'},
-      {id: '3', cardTitle: 'Credit card 3', cardNumber: '03', balance: '1000'}
-    ]
-    let card = cards.find(function (card) { return card.id === params.id; })
-    return { card }
+  computed: {
+    ...mapGetters(['getCardById', 'getCardsListWithoutCurrent']),
+    card () { return this.getCardById(this.$route.params.id) },
+    cards () { return this.getCardsListWithoutCurrent(this.$route.params.id) }
   },
   methods: {
-    add: function(card) {
-      let input = document.getElementById('amount')
-      let balance = parseInt(card.balance)
-      let amount = parseInt(input.value)
-      if (amount) {
-        balance = balance + amount
-        card.balance = balance
-        input.value = ""
-      } else {
+    sendBalance: function (cardFrom, cardTo) {
+      if (!this.amountToSend) {
         alert('Amount is blank')
+      } else if (this.amountToSend > cardFrom.balance) {
+        alert('Not enough money')
+      }  else {
+        this.$store.commit('takeBalance', {
+          card: cardFrom,
+          amount: this.amountToSend
+        })
+        this.$store.commit('addBalance', {
+          card: cardTo,
+          amount: this.amountToSend
+        })
+        this.amountToSend = ""
+        this.selectedCard = undefined
+        this.showSendBalanceForm = false
+        alert('Balance sended')
       }
+    },
+    toggleCardsList: function () {
+      this.showCardsList = !this.showCardsList
+      this.selectedCard = undefined
+      this.showSendBalanceForm = false
+    },
+    selectCard: function (el, event){
+      this.selectedCard = el.id
+      this.showSendBalanceForm = true
+      this.cardTo = el
     }
   }
 }
@@ -67,13 +93,6 @@ export default{
 <style lang="scss" scoped>
   .credit-card-page {
     section.content { text-align: left; }
-    .card-item__inner {
-      margin: 0;
-      &:hover { border-color: #000; }
-    }
   }
   .back-link { margin-bottom: 20px; }
-  .add-balance {
-    .row { margin-top: 20px; }
-  }
 </style>

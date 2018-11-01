@@ -1,29 +1,33 @@
-<template>
-  <section class="content">
-    <div class="container">
-      <app-logo/>
-      <h1 class="title">
-        test
-      </h1>
-      <h2 class="subtitle">
-        Nuxt.js project
-      </h2>
-      <div class="links">
-        <a
+<template lang="pug">
+  section.content
+    .container
+      app-logo
+      h1.title test
+      h2.subtitle Nuxt.js project
+      .links
+        a.button--green(
           href="https://nuxtjs.org/"
           target="_blank"
-          class="button--green">Documentation</a>
-        <a
+        ) Documentation
+        a.button--grey(
           href="https://github.com/nuxt/nuxt.js"
           target="_blank"
-          class="button--grey">GitHub</a>
-      </div>
+        ) GitHub
+      .cards-list
+        cardItem(
+          v-for="(card, index) in cards"
+          v-bind:card="card"
+          :key="card.id"
+          :index="index"
+          v-on:remove="cards.splice(index, 1)"
+        )
     </div>
   </section>
 </template>
 
 <script>
 import AppLogo from '~/components/AppLogo.vue'
+import cardItem from '~/components/cardItem.vue'
 
 export default {
   head: {
@@ -32,7 +36,11 @@ export default {
     }
   },
   components: {
-    AppLogo
+    AppLogo,
+    cardItem
+  },
+  computed: {
+    cards () { return this.$store.state.cards }
   }
 }
 </script>
